@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Guide - Adaptive Reorder Dashboard</title>
+    <style>
+        :root {
+            --bg: #F9FAFB;
+            --surface: #FFFFFF;
+            --text-main: #111827;
+            --text-muted: #6B7280;
+            --border: #E5E7EB;
+            --primary: #2563EB;
+            --primary-bg: #EFF6FF;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --font: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            font-family: var(--font);
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border);
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-top: 0;
+            margin-bottom: 8px;
+            color: var(--text-main);
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin-top: 40px;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--primary-bg);
+            color: var(--text-main);
+        }
+
+        h3 {
+            font-size: 18px;
+            color: var(--text-main);
+            margin-top: 24px;
+        }
+
+        p {
+            margin-bottom: 16px;
+        }
+
+        .card {
+            background: var(--primary-bg);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .card p:last-child {
+            margin-bottom: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: var(--bg);
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.05em;
+        }
+
+        .term {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .highlight {
+            background-color: #FEF3C7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
+        
+        ul {
+            padding-left: 20px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            h1 { font-size: 24px; }
+            h2 { font-size: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Adaptive Reorder Dashboard</h1>
+    <p class="subtitle">Complete Business &amp; Operations Guide</p>
+
+    <div class="card">
+        <strong>Why we built this:</strong> 
+        <p>Traditional inventory systems rely on fixed "Min/Max" numbers that constantly go out of date, leading to either stockouts (lost sales) or overstock (tied-up cash). This dashboard solves that by making reordering <strong>Adaptive</strong>. It looks at your actual recent sales history and calculates exactly what you need to order <em>right now</em>.</p>
+    </div>
+
+    <h2>1. How it Works (The Big Picture)</h2>
+    <p>This tool analyzes Excel exports straight from Odoo. Instead of trusting hard-coded order points, it calculates exactly how fast every item is selling based on the date range you set.</p>
+    <ul>
+        <li><strong>Step 1: Determine Run Rate.</strong> The tool counts the sales for the period and divides by the elapsed months to get a "Monthly Run Rate". <em>(e.g., sold 300 in 3 months = 100/month)</em></li>
+        <li><strong>Step 2: Check Stock.</strong> Using your configured Lead Time and Buffer, it checks if your current stock will run out before a new shipment arrives.</li>
+        <li><strong>Step 3: Suggest Order.</strong> If stock is low, it suggests an order quantity to build inventory back up to a "Max Stock" level, automatically rounding up based on Minimum Order Quantities (MOQ).</li>
+    </ul>
+
+    <h2>2. Key Terms &amp; Settings Explained</h2>
+    <p>These are the sliders and inputs you can control on the main dashboard to adjust how aggressive or conservative the ordering logic is.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Term</th>
+                <th>What it means</th>
+                <th>Business Impact</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="term">Lead Time (Months)</span></td>
+                <td>How long it takes a supplier to deliver an item once an order is placed.</td>
+                <td>Higher lead times force the system to warn you earlier so you don't run out while waiting for cargo.</td>
+            </tr>
+            <tr>
+                <td><span class="term">Safety Buffer</span></td>
+                <td>Extra cushion inventory to cover unexpected sales spikes or shipping delays.</td>
+                <td>Higher buffer = more cash tied up, but prevents out-of-stock situations. Lower buffer = leaner inventory.</td>
+            </tr>
+            <tr>
+                <td><span class="term">Max Stock</span></td>
+                <td>Your "target" inventory level when receiving a fresh shipment.</td>
+                <td>If set to 3 months, the system will order enough product so you have exactly 3 months' worth of supply when the shipment lands.</td>
+            </tr>
+            <tr>
+                <td><span class="term">XYZ Multiplier</span></td>
+                <td>An extra safety boost specifically applied to erratic or highly unpredictable items ("Z" items).</td>
+                <td>It multiplies the safety buffer only for unpredictable items to prevent stockouts resulting from sudden spikes.</td>
+            </tr>
+            <tr>
+                <td><span class="term">MOQ (Min. Order Qty)</span></td>
+                <td>The smallest batch size the factory/supplier allows.</td>
+                <td>Ensures the final suggested order quantity is perfectly rounded to a supplier-acceptable number.</td>
+            </tr>
+            <tr>
+                <td><span class="term">Run Rate</span></td>
+                <td>The average number of units sold per month based on the dates provided.</td>
+                <td>The core metric. If Run Rate is 0, the system stops ordering the item automatically.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>3. The Calculation Math (Under the Hood)</h2>
+    <p>If you or an auditor need to verify exactly how the dashboard arrives at a number, here is the formula applied to every row:</p>
+    
+    <div style="background: var(--bg); padding: 16px; border-radius: 8px; font-family: monospace; font-size: 14px; margin-bottom: 24px;">
+        1. Monthly Sales = Total Sales ÷ Elapsed Months<br><br>
+        2. Reorder Point = (Lead Time + Safety Buffer) × Monthly Sales<br><br>
+        3. Target Stock Ceiling = Max Stock × Monthly Sales<br><br>
+        4. Raw Order Deficit = Target Stock Ceiling - Current Stock<br><br>
+        5. Final Order Qty = Round up Deficit to nearest MOQ
+    </div>
+
+    <p><strong>Example:</strong> If a product sells 100 a month. Lead time is 1 month, safety buffer is 0.5 months. Max stock is 3 months. Current stock is 120.</p>
+    <ul>
+        <li>Reorder Point = (1 + 0.5) × 100 = <strong>150 units</strong></li>
+        <li>Since Current Stock (120) is less than Reorder Point (150), it triggers an <strong>"Order Now"</strong> alert.</li>
+        <li>Target Ceiling = 3 × 100 = 300. We have 120, so we need <strong>180</strong>.</li>
+        <li>If MOQ is 50, it rounds 180 up to <strong>200 units</strong>.</li>
+    </ul>
+
+    <h2>4. The Priority Categories</h2>
+    <p>The dashboard cuts through noise by sorting your data into actionable urgency buckets:</p>
+    <ul>
+        <li><span style="color:var(--danger); font-weight:bold;">Urgent:</span> Inventory is negative, or you literally have zero days left. Immediate action required.</li>
+        <li><span style="color:var(--warning); font-weight:bold;">Order Now:</span> Current stock has dropped below the Reorder Point. Cut a PO today.</li>
+        <li><span style="color:var(--primary); font-weight:bold;">Watch:</span> Only applies to slow-moving items. Stock has dropped completely out of buffer, but isn’t dead yet. Review before buying.</li>
+        <li><span style="color:var(--success); font-weight:bold;">OK:</span> You have plenty of stock to comfortably survive lead times. No action needed.</li>
+    </ul>
+
+    <h2>5. Advanced Dashboard Features</h2>
+    
+    <h3>Trend Detection (% Up / Down)</h3>
+    <p>By uploading a "Previous Period" export alongside your current export, the dashboard maps the run-rates against each other. It instantly spots if an item's sales have dropped 50% or spiked 200%, helping you spot dying product lines or viral products before it's too late.</p>
+
+    <h3>What-If Simulator</h3>
+    <p>As you slide parameters (e.g., dropping buffer from 1 month to 0.5 months), a live preview banner appears identifying exactly how many Urgent/Order items that policy change just generated.</p>
+    
+    <h3>Data Quality Checker</h3>
+    <p>Checks for duplicates, negative stock, missing names, and zero-sales items silently behind the scenes. Bad Excel data won't silently corrupt your reorder numbers.</p>
+    
+    <h3>Timeline &amp; PO Draft Tabs</h3>
+    <p>Outputs are rendered in three ways: The absolute raw data (Table), grouped by days remaining (Timeline), and a clean Purchase Order layout ready to copy-paste into Odoo or an email.</p>
+
+</div>
+
+</body>
+</html>
