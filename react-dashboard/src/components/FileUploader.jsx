@@ -11,9 +11,9 @@ export default function FileUploader({ id, label, badge, description, type, onDa
         setStatus('Reading…');
         try {
             const data = await parseFile(file);
-            setStatus(`✓ ${data.length} products loaded`);
+            setStatus(`✓ ${data.rows.length} products loaded`);
             setReady(true);
-            onDataLoaded({ rows: data, label: type });
+            onDataLoaded(data); // data = { rows, dateStart, dateEnd }
         } catch (ex) {
             setStatus('Upload failed: ' + ex);
             setReady(false);
@@ -30,10 +30,10 @@ export default function FileUploader({ id, label, badge, description, type, onDa
             <p className="ct">{label}</p>
             <p className="cs">{description}</p>
             <label className="fl" htmlFor={`file-${id}`}>Choose .xlsx or .csv file</label>
-            <input 
-                type="file" 
-                id={`file-${id}`} 
-                accept=".xlsx,.xls,.csv" 
+            <input
+                type="file"
+                id={`file-${id}`}
+                accept=".xlsx,.xls,.csv"
                 style={{ display: 'none' }}
                 onChange={handleFile}
             />
