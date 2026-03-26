@@ -20,10 +20,8 @@ const defaultParams = {
 };
 
 export function useDashboardState() {
-    const [fastData, setFastData] = useState(null);
-    const [slowData, setSlowData] = useState(null);
-    const [prevFastData, setPrevFastData] = useState(null);
-    const [prevSlowData, setPrevSlowData] = useState(null);
+    const [currentData, setCurrentData] = useState(null);
+    const [prevData, setPrevData] = useState(null);
 
     const [params, setParams] = useState(defaultParams);
     
@@ -35,44 +33,30 @@ export function useDashboardState() {
         saveSession(sessionState);
     }, [sessionState]);
 
-    // Triggers a calculation (in React, just derived state based on a trigger counter or memo)
-    // Actually, since React re-renders on state change, we can just useMemo for the results!
+    // Auto-detect dates from uploaded file
+    useEffect(() => {
+        if (currentData?.dateStart && currentData?.dateEnd) {
+            setParams(p => ({ ...p, 'date-start': currentData.dateStart, 'date-end': currentData.dateEnd }));
+        }
+    }, [currentData]);
+
     const results = useMemo(() => {
-        if (!fastData && !slowData) return [];
+        if (!currentData?.rows) return [];
         
         const months = calcMonths(params['date-start'], params['date-end']);
         
-        const fp = { 
-            lt: Number(params['lt-fast']) || 0.5, 
-            buf: Number(params['buf-fast']) || 0.5, 
-            max: Number(params['max-fast']) || 2, 
-            xm: Number(params['xyz-mult']) || 1.5, 
-            moq: Number(params['moq-fast']) || 1, 
-            zt: Number(params['zt-fast']) || 0 
-        };
-        const sp = { 
-            lt: Number(params['lt-slow']) || 1, 
-            buf: Number(params['buf-slow']) || 1, 
-            max: Number(params['max-slow']) || 3, 
-            xm: 1, 
-            moq: Number(params['moq-slow']) || 1, 
-            zt: Number(params['zt-slow']) || 0 
-        };
-
-        let tmp = [];
-        if (fastData) tmp = tmp.concat(calc(fastData.rows, 'fast', months, fp));
-        if (slowData) tmp = tmp.concat(calc(slowData.rows, 'slow', months, sp));
+        const tmp = calc(currentData.rows, months, params);
 
         const po = { urgent: 0, order: 1, watch: 2, ok: 3 };
         tmp.sort((a, b) => (po[a.priority] ?? 9) - (po[b.priority] ?? 9));
 
         // Enrich with trend and cost
-        const prevRates = buildPrevRates(prevFastData, prevSlowData, months);
+        const prevRates = buildPrevRates(prevData, months);
         const defCost = Number(params['default-cost']) || 0;
         enrichData(tmp, prevRates, defCost, sessionState.overrides);
 
         return tmp;
-    }, [fastData, slowData, prevFastData, prevSlowData, params, sessionState.overrides]);
+    }, [currentData, prevData, params, sessionState.overrides]);
 
     const updateParam = (key, val) => setParams(p => ({ ...p, [key]: val }));
     
@@ -103,10 +87,8 @@ export function useDashboardState() {
     };
 
     return {
-        fastData, setFastData,
-        slowData, setSlowData,
-        prevFastData, setPrevFastData,
-        prevSlowData, setPrevSlowData,
+        currentData, setCurrentData,
+        prevData, setPrevData,
         params, updateParam, setParams,
         sessionState, setSessionState,
         setOverride, clearOverride, toggleFlag, setNote,

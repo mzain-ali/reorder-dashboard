@@ -12,10 +12,8 @@ import { calcMonths } from './utils/calculator';
 
 export default function App() {
     const {
-        fastData, setFastData,
-        slowData, setSlowData,
-        prevFastData, setPrevFastData,
-        prevSlowData, setPrevSlowData,
+        currentData, setCurrentData,
+        prevData, setPrevData,
         params, updateParam, setParams,
         sessionState,
         setOverride, clearOverride, toggleFlag, setNote,
@@ -45,7 +43,7 @@ export default function App() {
         localStorage.setItem('ro_dark', dark ? '1' : '0');
     }, [dark]);
 
-    const hasData = fastData || slowData;
+    const hasData = !!currentData;
 
     if (view === 'guide') {
         return (
@@ -68,16 +66,11 @@ export default function App() {
             <div id="err" className="err" style={{ display: 'none' }}></div>
 
             {/* Current Uploads */}
-            <div className="up-grid">
+            <div className="up-grid" style={{ gridTemplateColumns: '1fr' }}>
                 <FileUploader 
-                    id="fast" type="fast" badge="Fast Moving"
-                    label="Fast Moving Export" description="Odoo FSN report filtered to 'Fast Moving'"
-                    onDataLoaded={setFastData}
-                />
-                <FileUploader 
-                    id="slow" type="slow" badge="Slow Moving"
-                    label="Slow Moving Export" description="Odoo FSN report filtered to 'Slow Moving'"
-                    onDataLoaded={setSlowData}
+                    id="current" type="fast" badge="Current Period"
+                    label="Current Period Export" description="Odoo FSN Inventory Report (Auto-detects Fast/Slow/Dates)"
+                    onDataLoaded={setCurrentData}
                 />
             </div>
 
@@ -88,16 +81,11 @@ export default function App() {
             
             <div className={`prev-sect ${showPrev ? 'on' : ''}`}>
                 <p className="sl" style={{ marginBottom: '8px' }}>Previous Period Uploads <span style={{fontSize:'12px',fontWeight:400,color:'var(--t2)'}}>(used to calculate demand trend %)</span></p>
-                <div className="up-grid">
+                <div className="up-grid" style={{ gridTemplateColumns: '1fr' }}>
                     <FileUploader 
-                        id="pfast" type="pfast" badge="Prev Fast Moving"
-                        label="Previous Fast Moving Export" description="Same FSN report from the prior period"
-                        onDataLoaded={setPrevFastData}
-                    />
-                    <FileUploader 
-                        id="pslow" type="pslow" badge="Prev Slow Moving"
-                        label="Previous Slow Moving Export" description="Same FSN report from the prior period"
-                        onDataLoaded={setPrevSlowData}
+                        id="prev" type="fast" badge="Previous Period"
+                        label="Previous Period Export" description="Same FSN report from the prior period"
+                        onDataLoaded={setPrevData}
                     />
                 </div>
             </div>
