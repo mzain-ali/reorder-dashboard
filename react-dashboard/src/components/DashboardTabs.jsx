@@ -39,58 +39,43 @@ export default function DashboardTabs({
         return s + (qty > 0 && r.cost > 0 ? qty * r.cost : 0);
     }, 0);
 
+    const baseTab = "text-[13px] font-semibold px-4.5 py-2.5 bg-transparent border-none rounded-t-lg text-slate-500 cursor-pointer transition-all -mb-[2px] border-b-2 border-transparent hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-slate-100 dark:hover:bg-slate-700/50";
+    const activeTab = "!text-accent !border-accent !bg-accent-bg dark:!text-accent-dark dark:!border-accent-dark dark:!bg-accent-bg-dark";
+
     return (
         <div id="results">
             {/* Results summary strip */}
-            <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '14px 20px',
-                background: 'var(--bg1)',
-                border: '1px solid var(--bd2)',
-                borderRadius: 'var(--r2) var(--r2) 0 0',
-                borderBottom: 'none',
-                flexWrap: 'wrap',
-                gap: '12px',
-            }}>
+            <div className="flex items-center justify-between p-3.5 px-5 bg-white border border-slate-200 rounded-t-xl border-b-0 flex-wrap gap-3 dark:bg-slate-800 dark:border-slate-700">
                 <div>
-                    <h3 style={{fontSize:'15px',fontWeight:700,color:'var(--t1)',letterSpacing:'-0.2px'}}>
+                    <h3 className="text-[15px] font-bold text-slate-900 tracking-tight dark:text-slate-100">
                         📋 Reorder Recommendations
                     </h3>
-                    <p style={{fontSize:'13px',color:'var(--t2)',marginTop:'3px'}}>
-                        <strong style={{color: needsAction > 0 ? '#D97706' : '#059669'}}>{needsAction}</strong> items need attention
+                    <p className="text-[13px] text-slate-500 mt-1 dark:text-slate-400">
+                        <strong className={needsAction > 0 ? 'text-amber-600 dark:text-amber-500' : 'text-emerald-600 dark:text-emerald-500'}>{needsAction}</strong> items need attention
                         {totalOrderValue > 0 && (
-                            <> &nbsp;·&nbsp; Estimated order value: <strong>{totalOrderValue.toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2})}</strong></>
+                            <> <span className="opacity-40">·</span> Estimated order value: <strong className="text-slate-900 dark:text-slate-200">{totalOrderValue.toLocaleString(undefined, {minimumFractionDigits:2,maximumFractionDigits:2})}</strong></>
                         )}
                     </p>
                 </div>
-                <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
-                    <span style={{fontSize:'12px',color:'var(--t2)'}}>
+                <div className="flex gap-2 items-center">
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
                         Showing {filteredResults.length} of {results.length} products
                     </span>
                 </div>
             </div>
 
-            <div style={{
-                background: 'var(--bg1)',
-                border: '1px solid var(--bd2)',
-                borderTop: 'none',
-                borderRadius: '0 0 var(--r2) var(--r2)',
-                padding: '1.25rem',
-                boxShadow: 'var(--shadow-sm)',
-            }}>
+            <div className="bg-white border border-slate-200 border-t-0 rounded-b-xl p-5 shadow-sm dark:bg-slate-800 dark:border-slate-700">
                 <FilterBar filters={filters} toggleFilter={toggleFilter} />
 
-                <div className="tabs">
-                    <button className={`tab-btn ${tab === 'tbl' ? 'on' : ''}`} onClick={() => setTab('tbl')}>
-                        📋 Table <span style={{fontSize:'12px',opacity:.7}}>({filteredResults.length})</span>
+                <div className="flex gap-1 mb-5 border-b-2 border-slate-200 dark:border-slate-700">
+                    <button className={`${baseTab} ${tab === 'tbl' ? activeTab : ''}`} onClick={() => setTab('tbl')}>
+                        📋 Table <span className="text-xs opacity-70">({filteredResults.length})</span>
                     </button>
-                    <button className={`tab-btn ${tab === 'tl' ? 'on' : ''}`} onClick={() => setTab('tl')}>📅 Timeline</button>
-                    <button className={`tab-btn ${tab === 'po' ? 'on' : ''}`} onClick={() => setTab('po')}>📄 PO Draft</button>
+                    <button className={`${baseTab} ${tab === 'tl' ? activeTab : ''}`} onClick={() => setTab('tl')}>📅 Timeline</button>
+                    <button className={`${baseTab} ${tab === 'po' ? activeTab : ''}`} onClick={() => setTab('po')}>📄 PO Draft</button>
                 </div>
 
-                <div className={`tab-pane ${tab === 'tbl' ? 'on' : ''}`} id="tab-tbl">
+                <div className={tab === 'tbl' ? 'block' : 'hidden'} id="tab-tbl">
                     <DataTable
                         data={filteredResults}
                         flags={flags} toggleFlag={toggleFlag}
@@ -100,11 +85,11 @@ export default function DashboardTabs({
                     />
                 </div>
 
-                <div className={`tab-pane ${tab === 'tl' ? 'on' : ''}`} id="tab-tl">
+                <div className={tab === 'tl' ? 'block' : 'hidden'} id="tab-tl">
                     <TimelineView data={filteredResults} overrides={overrides} />
                 </div>
 
-                <div className={`tab-pane ${tab === 'po' ? 'on' : ''}`} id="tab-po">
+                <div className={tab === 'po' ? 'block' : 'hidden'} id="tab-po">
                     <PODraft data={filteredResults} overrides={overrides} defCost={defCost} />
                 </div>
             </div>

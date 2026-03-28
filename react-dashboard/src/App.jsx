@@ -26,22 +26,18 @@ export default function App() {
     const [dark, setDark] = useState(() => localStorage.getItem('ro_dark') === '1');
     const [currentPreset, setCurrentPreset] = useState('');
     const [showPrev, setShowPrev] = useState(false);
-    // Progressive disclosure: params collapsed by default, auto-opens when data loads
     const [showParams, setShowParams] = useState(false);
-
     const [view, setView] = useState('dashboard');
     const [selectedCodes, setSelectedCodes] = useState(new Set());
 
-    // Auto-expand params once data is loaded
     React.useEffect(() => {
         if (currentData) setShowParams(true);
-    }, [!!currentData]);
+    }, [currentData]);
 
     const toggleSelection = (code) => {
         setSelectedCodes(prev => {
             const next = new Set(prev);
-            if (next.has(code)) next.delete(code);
-            else next.add(code);
+            next.has(code) ? next.delete(code) : next.add(code);
             return next;
         });
     };
@@ -57,14 +53,14 @@ export default function App() {
 
     if (view === 'guide') {
         return (
-            <div className="wrap">
+            <div className="px-6 py-6 pb-24 max-w-[1400px] mx-auto">
                 <Guide onBack={() => setView('dashboard')} />
             </div>
         );
     }
 
     return (
-        <div className="wrap">
+        <div className="px-6 py-6 pb-24 max-w-[1400px] mx-auto">
             <Header
                 dark={dark} setDark={setDark}
                 params={params}
@@ -76,16 +72,16 @@ export default function App() {
                 deletePreset={deletePreset}
             />
 
-            {/* ── STEP 1: Upload ───────────────────────────────────────── */}
-            <div className="section-header">
-                <div className="sh-icon">📁</div>
-                <div className="sh-text">
-                    <h3>Step 1 — Upload Inventory Report</h3>
-                    <p>Export your FSN Inventory Report from Odoo and drop it below (.xlsx or .csv)</p>
+            {/* ── STEP 1: Upload ── */}
+            <div className="flex items-center gap-2.5 my-8 mt-6 overflow-hidden">
+                <div className="w-9 h-9 flex items-center justify-center bg-accent-bg text-accent dark:bg-accent-bg-dark dark:text-accent-dark rounded-lg text-base shrink-0">📁</div>
+                <div>
+                    <h3 className="text-[15px] font-bold text-slate-900 dark:text-slate-100 tracking-tight">Step 1 — Upload Inventory Report</h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-[1px]">Export your FSN Inventory Report from Odoo and drop it below (.xlsx or .csv)</p>
                 </div>
             </div>
 
-            <div className="up-grid">
+            <div className="grid grid-cols-1 gap-3">
                 <FileUploader
                     id="current" type="fast" badge="Current Period"
                     label="Current Period Export"
@@ -97,54 +93,58 @@ export default function App() {
             {/* Data quality warnings banner */}
             <DataWarnings warnings={dataWarnings} onDismiss={dismissWarning} />
 
-            {/* Data summary bar — shown after upload instead of formula box */}
+            {/* Data summary bar */}
             {hasData && (
-                <div className="data-summary">
-                    <span className="ds-icon">✅</span>
-                    <strong>{currentData.rows.length} products</strong> loaded
-                    <span className="ds-sep">|</span>
-                    <span>Period: <strong>{params['date-start']}</strong> → <strong>{params['date-end']}</strong></span>
-                    <span className="ds-sep">|</span>
-                    <span><strong>{months}</strong> months of sales data</span>
+                <div className="flex items-center gap-2.5 bg-accent-bg border border-accent rounded-lg px-4 py-2.5 my-5 text-[13px] text-accent font-medium flex-wrap dark:bg-accent-bg-dark dark:border-accent-dark dark:text-accent-dark shadow-sm">
+                    <span className="text-base leading-none">✅</span>
+                    <span><strong className="font-bold">{currentData.rows.length} products</strong> loaded</span>
+                    <span className="opacity-30 mx-1">|</span>
+                    <span>Period: <strong className="font-bold">{params['date-start']}</strong> → <strong className="font-bold">{params['date-end']}</strong></span>
+                    <span className="opacity-30 mx-1">|</span>
+                    <span><strong className="font-bold">{months}</strong> months of sales data</span>
                     {currentData._hasOnOrder && (
-                        <><span className="ds-sep">|</span><span>📦 On Order netting active</span></>
+                        <><span className="opacity-30 mx-1">|</span><span>📦 On Order netting active</span></>
                     )}
                 </div>
             )}
 
-            {/* Previous period (collapsible) */}
-            <button className="prev-toggle" onClick={() => setShowPrev(!showPrev)}>
-                {showPrev ? '▾' : '▸'} Compare with Previous Period <span style={{fontSize:'12px', fontWeight:400, marginLeft:'4px'}}>(optional — enables trend detection)</span>
+            {/* Previous period */}
+            <button className="flex items-center gap-1.5 text-[13px] text-accent font-medium cursor-pointer bg-transparent border border-dashed border-accent rounded-lg px-3.5 py-2 mt-4 transition-colors hover:bg-accent-bg dark:text-accent-dark dark:border-accent-dark dark:hover:bg-accent-bg-dark" onClick={() => setShowPrev(!showPrev)}>
+                {showPrev ? '▾' : '▸'} Compare with Previous Period <span className="text-xs font-normal ml-1 opacity-70">(optional — enables trend detection)</span>
             </button>
 
-            <div className={`prev-sect ${showPrev ? 'on' : ''}`}>
-                <div className="up-grid" style={{ marginTop: '10px' }}>
-                    <FileUploader
-                        id="prev" type="slow" badge="Previous Period"
-                        label="Previous Period Export"
-                        description="Same FSN report from the prior period — used to calculate demand trend %"
-                        onDataLoaded={setPrevData}
-                    />
+            {showPrev && (
+                <div className="mt-3">
+                    <div className="grid grid-cols-1 gap-3">
+                        <FileUploader
+                            id="prev" type="slow" badge="Previous Period"
+                            label="Previous Period Export"
+                            description="Same FSN report from the prior period — used to calculate demand trend %"
+                            onDataLoaded={setPrevData}
+                        />
+                    </div>
                 </div>
-            </div>
+            )}
 
-            {/* ── STEP 2: Configure Parameters ────────────────────────── */}
+            {/* ── STEP 2: Configure Parameters ── */}
             <button
-                className={`params-toggle ${showParams ? 'open' : ''}`}
+                className="w-full flex items-center justify-between text-sm font-semibold text-slate-900 bg-white border border-slate-200 rounded-lg px-4 py-3 cursor-pointer transition-colors mt-6 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700 dark:hover:bg-slate-700 shadow-sm"
                 onClick={() => setShowParams(p => !p)}
             >
-                <span>⚙ Step 2 — Configure Parameters {!hasData && <span style={{fontSize:'12px',fontWeight:400,opacity:.6}}>(upload data first)</span>}</span>
-                <span className="pt-chevron">▼</span>
+                <span>⚙ Step 2 — Configure Parameters {!hasData && <span className="text-xs font-normal opacity-60 ml-1">(upload data first)</span>}</span>
+                <span className={`text-xs text-slate-500 transition-transform duration-200 ${showParams ? 'rotate-180' : ''}`}>▼</span>
             </button>
 
-            <div className={`params-body ${showParams ? 'on' : ''}`}>
-                <ParametersPanel params={params} updateParam={updateParam} calcMonths={calcMonths} />
-            </div>
+            {showParams && (
+                <div className="pt-4">
+                    <ParametersPanel params={params} updateParam={updateParam} calcMonths={calcMonths} />
+                </div>
+            )}
 
-            {/* ── Jump to results ──────────────────────────────────────── */}
-            <div style={{ margin: '1.5rem 0' }}>
+            {/* ── Jump to results ── */}
+            <div className="my-6">
                 <button
-                    className="run"
+                    className="w-full p-3.5 text-[15px] font-bold cursor-pointer rounded-lg bg-accent text-white transition-all shadow-[0_2px_8px_rgba(79,70,229,0.35)] hover:bg-accent-h hover:-translate-y-[1px] hover:shadow-[0_4px_14px_rgba(79,70,229,0.45)] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none dark:bg-accent-dark dark:hover:bg-accent-h-dark dark:shadow-[0_2px_8px_rgba(99,102,241,0.25)] dark:hover:shadow-[0_4px_14px_rgba(99,102,241,0.35)]"
                     id="run-btn"
                     disabled={!hasData}
                     onClick={() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' })}
@@ -153,14 +153,14 @@ export default function App() {
                 </button>
             </div>
 
-            {/* ── STEP 3: Results ──────────────────────────────────────── */}
+            {/* ── STEP 3: Results ── */}
             {hasData && (
                 <>
-                    <div className="section-header">
-                        <div className="sh-icon">📋</div>
-                        <div className="sh-text">
-                            <h3>Step 3 — Reorder Recommendations</h3>
-                            <p>Items ranked by urgency based on {months} months of actual sales data</p>
+                    <div className="flex items-center gap-2.5 my-8 mt-10 mb-4 overflow-hidden">
+                        <div className="w-9 h-9 flex items-center justify-center bg-accent-bg text-accent dark:bg-accent-bg-dark dark:text-accent-dark rounded-lg text-base shrink-0">📋</div>
+                        <div>
+                            <h3 className="text-[15px] font-bold text-slate-900 dark:text-slate-100 tracking-tight">Step 3 — Reorder Recommendations</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-[1px]">Items ranked by urgency based on {months} months of actual sales data</p>
                         </div>
                     </div>
 
@@ -175,7 +175,6 @@ export default function App() {
                 </>
             )}
 
-            {/* Fixed bottom bulk action bar */}
             <BulkActionBar
                 selectedCodes={selectedCodes}
                 clearSelection={clearSelection}

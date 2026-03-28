@@ -4,53 +4,21 @@ export default function DataWarnings({ warnings, onDismiss }) {
     if (!warnings || warnings.length === 0) return null;
 
     return (
-        <div className="dw-strip">
+        <div className="my-3 flex flex-col gap-1.5">
             {warnings.map((msg, i) => (
-                <div className="dw-row" key={i}>
-                    <span className="dw-icon">⚠</span>
-                    <span className="dw-msg">{msg}</span>
-                    <button className="dw-close" onClick={() => onDismiss(i)} title="Dismiss">✕</button>
+                <div className="flex items-start md:items-center gap-2.5 bg-amber-50 border border-amber-400 border-l-4 border-l-amber-500 rounded-lg px-4 py-3 text-[13px] text-amber-900 shadow-sm dark:bg-[#2D1D00] dark:border-amber-700/50 dark:border-l-amber-600 dark:text-amber-200" key={i}>
+                    <span className="text-[16px] shrink-0 mt-0.5 md:mt-0">⚠</span>
+                    <span className="flex-1 leading-snug font-medium">{msg}</span>
+                    <button 
+                        className="bg-transparent border-none cursor-pointer text-[14px] text-amber-900/40 px-1 py-1 shrink-0 hover:text-amber-900 hover:bg-amber-900/10 rounded transition-colors dark:text-amber-200/50 dark:hover:text-amber-200 dark:hover:bg-amber-200/10" 
+                        onClick={() => onDismiss(i)} 
+                        title="Dismiss"
+                        aria-label="Dismiss warning"
+                    >
+                        ✕
+                    </button>
                 </div>
             ))}
-            <style>{`
-                .dw-strip {
-                    margin: 12px 0;
-                    display: flex;
-                    flex-direction: column;
-                    gap: 6px;
-                }
-                .dw-row {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    background: #FFFBEB;
-                    border: 1px solid #F59E0B;
-                    border-left: 4px solid #F59E0B;
-                    border-radius: 6px;
-                    padding: 10px 14px;
-                    font-size: 13px;
-                    color: #92400E;
-                }
-                .dark .dw-row {
-                    background: #1C1505;
-                    border-color: #B45309;
-                    color: #FCD34D;
-                }
-                .dw-icon { font-size: 15px; flex-shrink: 0; }
-                .dw-msg  { flex: 1; line-height: 1.4; }
-                .dw-close {
-                    background: none;
-                    border: none;
-                    cursor: pointer;
-                    font-size: 14px;
-                    color: #92400E;
-                    opacity: 0.6;
-                    padding: 0 2px;
-                    flex-shrink: 0;
-                }
-                .dark .dw-close { color: #FCD34D; }
-                .dw-close:hover { opacity: 1; }
-            `}</style>
         </div>
     );
 }

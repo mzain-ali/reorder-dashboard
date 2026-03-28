@@ -1,55 +1,46 @@
 import React from 'react';
 
 export default function FilterBar({ filters, toggleFilter }) {
-    const isAct = (key, val) => filters[key]?.has(val);
+    const activeClass = "bg-accent text-white border-accent shadow-[0_2px_6px_rgba(79,70,229,0.3)] dark:bg-accent-dark dark:border-accent-dark";
+    
+    // Priority specific active colors
+    const activeUrg = "bg-red-600 text-white border-red-600 shadow-[0_2px_6px_rgba(220,38,38,0.3)] dark:bg-red-700 dark:border-red-700";
+    const activeOrd = "bg-amber-600 text-white border-amber-600 shadow-[0_2px_6px_rgba(217,119,6,0.3)] dark:bg-amber-700 dark:border-amber-700";
+    const activeWat = "bg-blue-600 text-white border-blue-600 shadow-[0_2px_6px_rgba(37,99,235,0.3)] dark:bg-blue-700 dark:border-blue-700";
+    const activeOk = "bg-emerald-600 text-white border-emerald-600 shadow-[0_2px_6px_rgba(5,150,105,0.3)] dark:bg-emerald-700 dark:border-emerald-700";
+    const activeStar = "bg-amber-500 text-white border-amber-500 shadow-[0_2px_6px_rgba(245,158,11,0.3)] dark:bg-amber-600 dark:border-amber-600";
 
-    const toggle = (key, val) => toggleFilter(key, val);
+    const baseBtn = "bg-white border border-slate-300 rounded-full px-3.5 py-1 text-xs font-semibold cursor-pointer text-slate-600 transition-all hover:border-accent hover:text-accent dark:bg-slate-900 dark:border-slate-600 dark:text-slate-300 dark:hover:border-accent-dark dark:hover:text-accent-dark";
 
-    const pt = (label, key, val, colorClass) => (
-        <button 
-            className={`tag-btn ${isAct(key, val) ? 'on' : ''} ${colorClass || ''}`}
-            onClick={() => toggle(key, val)}
-        >
-            {label}
-        </button>
-    );
+    const hasPriority = (p) => filters.priority?.has(p);
+    const hasClass = (c) => filters.class?.has(c);
+    const hasCustom = (c) => filters.custom?.has(c);
 
     return (
-        <div className="filter-bar">
-            <div className="filter-group">
-                <span className="fg-label">Action Status:</span>
-                {pt('Urgent', 'priority', 'urgent', 't-urg')}
-                {pt('Order Now', 'priority', 'order', 't-ord')}
-                {pt('Watch', 'priority', 'watch', 't-wat')}
-                {pt('OK', 'priority', 'ok', 't-ok')}
+        <div className="flex flex-wrap gap-4 mb-5 px-4 py-3.5 bg-slate-100 border border-slate-200 rounded-xl dark:bg-slate-800/80 dark:border-slate-700">
+            <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mr-1.5 dark:text-slate-400">Priority Filter</span>
+                <button className={`${baseBtn} ${hasPriority('urgent') ? activeUrg : ''}`} onClick={() => toggleFilter('priority', 'urgent')}>🔴 Urgent</button>
+                <button className={`${baseBtn} ${hasPriority('order') ? activeOrd : ''}`} onClick={() => toggleFilter('priority', 'order')}>🟡 Order Now</button>
+                <button className={`${baseBtn} ${hasPriority('watch') ? activeWat : ''}`} onClick={() => toggleFilter('priority', 'watch')}>🔵 Watch</button>
+                <button className={`${baseBtn} ${hasPriority('ok') ? activeOk : ''}`} onClick={() => toggleFilter('priority', 'ok')}>🟢 OK</button>
             </div>
 
-            <div className="filter-group">
-                <span className="fg-label">Class:</span>
-                {pt('Class X', 'class', 'X')}
-                {pt('Class Y', 'class', 'Y')}
-                {pt('Class Z', 'class', 'Z')}
+            <div className="w-[1px] bg-slate-300 h-6 mx-2 hidden sm:block dark:bg-slate-600"></div>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mr-1.5 dark:text-slate-400">XYZ Class</span>
+                <button className={`${baseBtn} ${hasClass('X') ? activeClass : ''}`} onClick={() => toggleFilter('class', 'X')}>X (Consistent)</button>
+                <button className={`${baseBtn} ${hasClass('Y') ? activeClass : ''}`} onClick={() => toggleFilter('class', 'Y')}>Y (Variable)</button>
+                <button className={`${baseBtn} ${hasClass('Z') ? activeClass : ''}`} onClick={() => toggleFilter('class', 'Z')}>Z (Sporadic)</button>
             </div>
 
-            <div className="filter-group">
-                <span className="fg-label">Custom:</span>
-                {pt('★ Starred', 'custom', 'starred', 't-star')}
+            <div className="w-[1px] bg-slate-300 h-6 mx-2 hidden lg:block dark:bg-slate-600"></div>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest mr-1.5 dark:text-slate-400">Custom</span>
+                <button className={`${baseBtn} ${hasCustom('starred') ? activeStar : ''}`} onClick={() => toggleFilter('custom', 'starred')}>★ Flagged Only</button>
             </div>
-            
-            <style>{`
-                .filter-bar { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; padding: 15px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
-                .filter-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-                .fg-label { font-size: 13px; font-weight: 500; color: var(--text-muted); }
-                .tag-btn { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; padding: 4px 12px; font-size: 13px; cursor: pointer; color: var(--text-main); transition: all 0.2s; }
-                .tag-btn:hover { border-color: var(--primary); }
-                .tag-btn.on { background: var(--primary); color: white; border-color: var(--primary); }
-                
-                .tag-btn.t-urg.on { background: #DC2626; border-color: #DC2626; }
-                .tag-btn.t-ord.on { background: #D97706; border-color: #D97706; }
-                .tag-btn.t-wat.on { background: #2563EB; border-color: #2563EB; }
-                .tag-btn.t-ok.on { background: #059669; border-color: #059669; }
-                .tag-btn.t-star.on { background: #F59E0B; border-color: #F59E0B; color: #000; }
-            `}</style>
         </div>
     );
 }
