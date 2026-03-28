@@ -6,6 +6,7 @@ import FileUploader from './components/FileUploader';
 import ParametersPanel from './components/ParametersPanel';
 import DashboardTabs from './components/DashboardTabs';
 import BulkActionBar from './components/BulkActionBar';
+import DataWarnings from './components/DataWarnings';
 import Guide from './components/Guide';
 
 import { calcMonths } from './utils/calculator';
@@ -16,17 +17,26 @@ export default function App() {
         prevData, setPrevData,
         params, updateParam, setParams,
         sessionState,
-        setOverride, clearOverride, toggleFlag, setNote,
-        results
+        setOverride, clearOverride, toggleFlag, setFlag, setNote,
+        results,
+        dataWarnings, dismissWarning,
+        presets, savePreset, deletePreset,
     } = useDashboardState();
 
     const [dark, setDark] = useState(() => localStorage.getItem('ro_dark') === '1');
     const [currentPreset, setCurrentPreset] = useState('');
     const [showPrev, setShowPrev] = useState(false);
-    
+    // Progressive disclosure: params collapsed by default, auto-opens when data loads
+    const [showParams, setShowParams] = useState(false);
+
     const [view, setView] = useState('dashboard');
     const [selectedCodes, setSelectedCodes] = useState(new Set());
-    
+
+    // Auto-expand params once data is loaded
+    React.useEffect(() => {
+        if (currentData) setShowParams(true);
+    }, [!!currentData]);
+
     const toggleSelection = (code) => {
         setSelectedCodes(prev => {
             const next = new Set(prev);
@@ -37,13 +47,13 @@ export default function App() {
     };
     const clearSelection = () => setSelectedCodes(new Set());
 
-    // Switch body dark mode class
     React.useEffect(() => {
         document.body.classList.toggle('dark', dark);
         localStorage.setItem('ro_dark', dark ? '1' : '0');
     }, [dark]);
 
     const hasData = !!currentData;
+    const months = calcMonths(params['date-start'], params['date-end']);
 
     if (view === 'guide') {
         return (
@@ -55,76 +65,124 @@ export default function App() {
 
     return (
         <div className="wrap">
-            <Header 
-                dark={dark} setDark={setDark} 
-                params={params} 
+            <Header
+                dark={dark} setDark={setDark}
+                params={params}
                 currentPreset={currentPreset} setCurrentPreset={setCurrentPreset}
                 onPresetLoad={loadedParams => setParams(loadedParams)}
                 onGuideClick={() => setView('guide')}
+                presets={presets}
+                savePreset={savePreset}
+                deletePreset={deletePreset}
             />
 
-            <div id="err" className="err" style={{ display: 'none' }}></div>
+            {/* ── STEP 1: Upload ───────────────────────────────────────── */}
+            <div className="section-header">
+                <div className="sh-icon">📁</div>
+                <div className="sh-text">
+                    <h3>Step 1 — Upload Inventory Report</h3>
+                    <p>Export your FSN Inventory Report from Odoo and drop it below (.xlsx or .csv)</p>
+                </div>
+            </div>
 
-            {/* Current Uploads */}
-            <div className="up-grid" style={{ gridTemplateColumns: '1fr' }}>
-                <FileUploader 
+            <div className="up-grid">
+                <FileUploader
                     id="current" type="fast" badge="Current Period"
-                    label="Current Period Export" description="Odoo FSN Inventory Report (Auto-detects Fast/Slow/Dates)"
+                    label="Current Period Export"
+                    description="Odoo FSN Inventory Report — auto-detects Fast/Slow/Non class and dates"
                     onDataLoaded={setCurrentData}
                 />
             </div>
 
-            {/* Previous Uploads */}
+            {/* Data quality warnings banner */}
+            <DataWarnings warnings={dataWarnings} onDismiss={dismissWarning} />
+
+            {/* Data summary bar — shown after upload instead of formula box */}
+            {hasData && (
+                <div className="data-summary">
+                    <span className="ds-icon">✅</span>
+                    <strong>{currentData.rows.length} products</strong> loaded
+                    <span className="ds-sep">|</span>
+                    <span>Period: <strong>{params['date-start']}</strong> → <strong>{params['date-end']}</strong></span>
+                    <span className="ds-sep">|</span>
+                    <span><strong>{months}</strong> months of sales data</span>
+                    {currentData._hasOnOrder && (
+                        <><span className="ds-sep">|</span><span>📦 On Order netting active</span></>
+                    )}
+                </div>
+            )}
+
+            {/* Previous period (collapsible) */}
             <button className="prev-toggle" onClick={() => setShowPrev(!showPrev)}>
-                {showPrev ? '▼' : '▶'} Compare with Previous Period (optional)
+                {showPrev ? '▾' : '▸'} Compare with Previous Period <span style={{fontSize:'12px', fontWeight:400, marginLeft:'4px'}}>(optional — enables trend detection)</span>
             </button>
-            
+
             <div className={`prev-sect ${showPrev ? 'on' : ''}`}>
-                <p className="sl" style={{ marginBottom: '8px' }}>Previous Period Uploads <span style={{fontSize:'12px',fontWeight:400,color:'var(--t2)'}}>(used to calculate demand trend %)</span></p>
-                <div className="up-grid" style={{ gridTemplateColumns: '1fr' }}>
-                    <FileUploader 
-                        id="prev" type="fast" badge="Previous Period"
-                        label="Previous Period Export" description="Same FSN report from the prior period"
+                <div className="up-grid" style={{ marginTop: '10px' }}>
+                    <FileUploader
+                        id="prev" type="slow" badge="Previous Period"
+                        label="Previous Period Export"
+                        description="Same FSN report from the prior period — used to calculate demand trend %"
                         onDataLoaded={setPrevData}
                     />
                 </div>
             </div>
 
-            <ParametersPanel params={params} updateParam={updateParam} calcMonths={calcMonths} />
+            {/* ── STEP 2: Configure Parameters ────────────────────────── */}
+            <button
+                className={`params-toggle ${showParams ? 'open' : ''}`}
+                onClick={() => setShowParams(p => !p)}
+            >
+                <span>⚙ Step 2 — Configure Parameters {!hasData && <span style={{fontSize:'12px',fontWeight:400,opacity:.6}}>(upload data first)</span>}</span>
+                <span className="pt-chevron">▼</span>
+            </button>
 
-            <div className="run-container" style={{ margin: '30px 0', display: 'flex', gap: '10px' }}>
-                <button 
-                    className="run" 
-                    id="run-btn" 
+            <div className={`params-body ${showParams ? 'on' : ''}`}>
+                <ParametersPanel params={params} updateParam={updateParam} calcMonths={calcMonths} />
+            </div>
+
+            {/* ── Jump to results ──────────────────────────────────────── */}
+            <div style={{ margin: '1.5rem 0' }}>
+                <button
+                    className="run"
+                    id="run-btn"
                     disabled={!hasData}
-                    onClick={() => {
-                        // The useMemo hook naturally computes results, but typically users like clicking to "Update". 
-                        // With React, changes happen instantly! To simulate "Run" required, we could debounce or delay rendering.
-                        // But instantaneous is better. We can just use the button to optionally scroll down.
-                        document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
-                    }}
+                    onClick={() => document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' })}
                 >
-                    {hasData ? '↓ Jump to Results' : '⚠ Upload Data Above'}
+                    {hasData ? `↓ View ${results.length} Reorder Recommendations` : '⚠ Upload a Report Above to Get Started'}
                 </button>
             </div>
 
+            {/* ── STEP 3: Results ──────────────────────────────────────── */}
             {hasData && (
-                <DashboardTabs 
-                    results={results} 
-                    flags={sessionState.flags} toggleFlag={toggleFlag}
-                    overrides={sessionState.overrides} setOverride={setOverride} clearOverride={clearOverride}
-                    notes={sessionState.notes} setNote={setNote}
-                    selectedCodes={selectedCodes} toggleSelection={toggleSelection}
-                    defCost={Number(params['default-cost']) || 0}
-                />
+                <>
+                    <div className="section-header">
+                        <div className="sh-icon">📋</div>
+                        <div className="sh-text">
+                            <h3>Step 3 — Reorder Recommendations</h3>
+                            <p>Items ranked by urgency based on {months} months of actual sales data</p>
+                        </div>
+                    </div>
+
+                    <DashboardTabs
+                        results={results}
+                        flags={sessionState.flags} toggleFlag={toggleFlag}
+                        overrides={sessionState.overrides} setOverride={setOverride} clearOverride={clearOverride}
+                        notes={sessionState.notes} setNote={setNote}
+                        selectedCodes={selectedCodes} toggleSelection={toggleSelection}
+                        defCost={Number(params['default-cost']) || 0}
+                    />
+                </>
             )}
 
-            <BulkActionBar 
-                selectedCodes={selectedCodes} 
+            {/* Fixed bottom bulk action bar */}
+            <BulkActionBar
+                selectedCodes={selectedCodes}
                 clearSelection={clearSelection}
                 setOverride={setOverride}
                 clearOverride={clearOverride}
                 toggleFlag={toggleFlag}
+                setFlag={setFlag}
                 setNote={setNote}
             />
         </div>

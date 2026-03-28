@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 
-export default function BulkActionBar({ 
-    selectedCodes, 
-    clearSelection, 
-    setOverride, 
-    clearOverride, 
-    toggleFlag, 
-    setNote 
+export default function BulkActionBar({
+    selectedCodes,
+    clearSelection,
+    setOverride,
+    clearOverride,
+    toggleFlag,
+    setFlag,   // Bug 2 fix: explicit flag setter
+    setNote
 }) {
     const [qty, setQty] = useState('');
     const [noteText, setNoteText] = useState('');
@@ -24,14 +25,12 @@ export default function BulkActionBar({
         selectedCodes.forEach(code => clearOverride(code));
     };
 
-    const handleFlag = (on) => {
-        // Here we just toggle, or set explicitly? Wait, Vanilla just "flagged". 
-        // If "on" is true, we should add if not present.
-        // But our `toggleFlag` just flips. Let's make it simpler: toggleFlag flips, but bulk action might want explicit add.
-        // Actuallly I'll just iterate and trigger toggleFlag. If they're already flagged, it unflags them.
-        // It's better if `setFlag(code, bool)` existed, but let's just toggle for now matching vanilla "Toggle Flag".
-        // Wait, vanilla had "Flag" and "Unflag". I should just do toggle for now.
-        selectedCodes.forEach(code => toggleFlag(code)); // It flips state!
+    // Bug 2 fix: explicit Flag All / Unflag All instead of blind toggle
+    const handleFlagAll = () => {
+        selectedCodes.forEach(code => setFlag(code, true));
+    };
+    const handleUnflagAll = () => {
+        selectedCodes.forEach(code => setFlag(code, false));
     };
 
     const handleApplyNote = () => {
@@ -41,11 +40,12 @@ export default function BulkActionBar({
     return (
         <div className="bulk-bar on">
             <span id="bulk-count">{count} selected</span>
+
             <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px' }}>
-                Set Qty 
-                <input 
-                    type="number" 
-                    min="0" 
+                Set Qty
+                <input
+                    type="number"
+                    min="0"
                     placeholder="qty"
                     value={qty}
                     onChange={e => setQty(e.target.value)}
@@ -53,12 +53,15 @@ export default function BulkActionBar({
             </label>
             <button onClick={handleApplyQty}>Apply Qty</button>
             <button onClick={handleClearOverrides}>Clear Overrides</button>
-            <button onClick={() => handleFlag(true)}>⭐ Toggle Flags</button>
-            
+
+            {/* Bug 2 fix: two explicit buttons instead of one ambiguous toggle */}
+            <button onClick={handleFlagAll} title="Flag all selected items">⭐ Flag All</button>
+            <button onClick={handleUnflagAll} title="Remove flag from all selected items">☆ Unflag All</button>
+
             <label style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                + Note 
-                <input 
-                    type="text" 
+                + Note
+                <input
+                    type="text"
                     placeholder="note text"
                     style={{ width: '100px', padding: '3px 6px', borderRadius: '4px', border: 'none', fontFamily: 'inherit', fontSize: '12px', color: 'var(--t1)' }}
                     value={noteText}
@@ -66,7 +69,7 @@ export default function BulkActionBar({
                 />
             </label>
             <button onClick={handleApplyNote}>Apply Note</button>
-            
+
             <button className="bulk-close" onClick={clearSelection}>×</button>
         </div>
     );
